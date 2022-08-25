@@ -6,7 +6,7 @@ import (
 )
 
 func TestWorld(t *testing.T) {
-	resp, err := World(context.Background(), "Jane Doe")
+	resp, err := Hello(context.Background(), "Jane Doe")
 	if err != nil {
 		t.Fatal(err)
 	}
