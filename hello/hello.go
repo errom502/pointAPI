@@ -28,6 +28,12 @@ func Hello(ctx context.Context, name string) (*Response, error) {
 	return &Response{Message: msg}, nil
 }
 
+//encore:api public path=/newWay/:name
+func NewW(ctx context.Context, name string) (*Response, error) {
+	msg := "Hello, " + name + "!"
+	return &Response{Message: msg}, nil
+}
+
 type Response struct {
 	Message string
 }
