@@ -16,8 +16,14 @@ import (
 //
 //     curl http://localhost:4000/hello/World
 //
-//encore:api public path=/hello/:name
+//encore:api public path=/world/:name
 func World(ctx context.Context, name string) (*Response, error) {
+	msg := "world, " + name + "!"
+	return &Response{Message: msg}, nil
+}
+
+//encore:api public path=/hello/:name
+func Hello(ctx context.Context, name string) (*Response, error) {
 	msg := "Hello, " + name + "!"
 	return &Response{Message: msg}, nil
 }
