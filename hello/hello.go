@@ -28,9 +28,11 @@ func Hello(ctx context.Context, name string) (*Response, error) {
 	return &Response{Message: msg}, nil
 }
 
-//encore:api public path=/newWay/:name
-func NewW(ctx context.Context, name string) (*Response, error) {
-	msg := "Hello, " + name + "!"
+//encore:api public method=GET path=/registration/:login
+//encore:api public method=GET path=/registration/:pass
+
+func Registration(ctx context.Context, login string, pass string) (*Response, error) {
+	msg := "Login: " + login + "\nPassword: " + pass
 	return &Response{Message: msg}, nil
 }
 
