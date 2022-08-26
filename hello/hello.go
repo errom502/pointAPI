@@ -28,8 +28,7 @@ func Hello(ctx context.Context, name string) (*Response, error) {
 	return &Response{Message: msg}, nil
 }
 
-//encore:api public method=GET path=/registration/:login
-//encore:api public method=GET path=/registration/:pass
+//encore:api public path=/registration/:login :pass
 
 func Registration(ctx context.Context, login string, pass string) (*Response, error) {
 	msg := "Login: " + login + "\nPassword: " + pass
