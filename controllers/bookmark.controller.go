@@ -22,7 +22,7 @@ func send(w http.ResponseWriter, r *http.Request) {
 	log.Println(b)
 	var ctx context.Context = r.Context()
 	_, err = sqldb.Exec(ctx, `
-		INSERT INTO Bookmark (id, name, address, owner, info) VALUES ($1, $2, $3, $4, $5)
+		INSERT INTO Bookmarks (id, name, address, owner, info) VALUES ($1, $2, $3, $4, $5)
 	`, b.ID, b.Name, b.Address, b.Owner, b.Info)
 	if err != nil {
     panic(err)
@@ -32,7 +32,7 @@ func send(w http.ResponseWriter, r *http.Request) {
 //encore:api public method=GET path=/bookmarks
 func getBookmarks(ctx context.Context) (*models.ListResponse, error) {
 	rows, err := sqldb.Query(ctx, `
-		select * from Bookmark
+		select * from Bookmarks
 	`,)
 	defer rows.Close()
 	bs := []*models.Bookmarks{}
