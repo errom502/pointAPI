@@ -9,6 +9,7 @@ import (
 
 //    INSERT INTO users (id,username) SELECT %d, '%s' WHERE NOT EXISTS (SELECT id FROM users WHERE id = %d)
 // 	  INSERT INTO client (login,password) SELECT %d, '%s' WHERE NOT EXISTS (SELECT id FROM users WHERE id = %d)
+
 func Registration(client models.Client, db *sql.DB) string {
 	login := client.Login
 	password := client.Password
