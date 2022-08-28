@@ -11,5 +11,5 @@ func main() {
 	var c models.Client
 	c.Login = "Mega 1"
 	c.Password = "ssega 2"
-	client.Registration(c, db)
+	client.Registration(c, db) // ну это типо тест еще
 }
