@@ -11,41 +11,48 @@ import (
 
 //encore:api public raw method=POST path=/client/registration
 func ClientRegistration(w http.ResponseWriter, r *http.Request) {
-	var c models.Client
 	decoder := json.NewDecoder(r.Body)
+	var c models.Client
 	err := decoder.Decode(&c)
 	if err != nil {
 		panic(err)
 	}
-
+	fmt.Println("1 -    1")
 	ctx := r.Context()
-	rows, err := sqldb.Query(ctx, `
-		select exists(select 1 from client where login = '$1')
-	`, c.Login)
-	defer rows.Close()
-	check := ""
-	for rows.Next() {
-		if err := rows.Scan(&check); err != nil {
-			panic(err)
-		}
-		fmt.Println(check)
-	}
-	if check == "true" {
-
-		fmt.Fprintf(w, "This login is already in use")
-	}
+	//res,err:=sqldb.Exec(ctx, `
+	//	select exists(select 1 from client where login = '$1')
+	//`, c.Login)
+	//
+	//rows, err := sqldb.Query(ctx, `
+	//	select exists(select 1 from client where login = '$1')
+	//`, c.Login)
+	//defer rows.Close()
+	//check := ""
+	//for rows.Next() {
+	//	if err := rows.Scan(&check); err != nil {
+	//		panic(err)
+	//	}
+	//	fmt.Println(check)
+	//}
+	//if check == "true" {
+	//
+	//	fmt.Fprintf(w, "This login is already in use")
+	//}
 	log.Println(c)
 
 	_, err = sqldb.Exec(ctx, `
 		INSERT INTO client (login,password) SELECT '$1', '$2' WHERE NOT EXISTS (SELECT login FROM client WHERE login = '$1')
 	`, c.Login, c.Password)
 	if err != nil {
+		fmt.Println("Ошибка на 47 строка")
 		panic(err)
 	}
 	//return "successful registration"
 	//return
 	fmt.Fprintf(w, "Successful registration")
 }
+
+//		INSERT INTO client (login,password) SELECT '$1', '$2' WHERE NOT EXISTS (SELECT login FROM client WHERE login = '$1')
 
 //encore:api public raw method=POST path=/client/login
 func ClientLogin(w http.ResponseWriter, r *http.Request) {
