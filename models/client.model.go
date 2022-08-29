@@ -1,7 +1,6 @@
 package models
 
 type Client struct {
-	ID       int
-	Login    string
-	Password string
+	Login    string `json:"login"`
+	Password string `json:"password"`
 }
