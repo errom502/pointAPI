@@ -1,4 +1,4 @@
-create table Bookmarks (
+create table bookmarks (
 	id serial primary key,
 	name text not null,
 	address text not null,
