@@ -1,4 +1,4 @@
-drop table client;
+drop table if exists  client;
 create table client (
     id SERIAL PRIMARY KEY,
     login varchar(100) NOT NULL,
