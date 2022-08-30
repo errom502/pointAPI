@@ -18,7 +18,6 @@ func ClientRegistration(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("1 -    1")
 	var ctx context.Context = r.Context()
 	//
 	var check bool
@@ -69,6 +68,39 @@ func ClientLogin(w http.ResponseWriter, r *http.Request) {
 	}
 	fmt.Fprintf(w, "invalid data")
 
+}
+
+//encore:api public raw method=DELETE path=/client/delete
+func deleteAccount(w http.ResponseWriter, r *http.Request) {
+	decoder := json.NewDecoder(r.Body)
+	var c models.Client
+	err := decoder.Decode(&c)
+	if err != nil {
+		panic(err)
+	}
+	ctx := r.Context()
+	var id int
+	if err := sqldb.QueryRow(ctx, `
+		select id from client where login = $1
+	`, c.Login).Scan(&id); err != nil {
+	}
+	fmt.Println(id)
+
+	_, err = sqldb.Exec(ctx, `
+		delete from bookmarks where id = $1
+	`, id)
+	if err != nil {
+		panic(err)
+	}
+
+	_, err = sqldb.Exec(ctx, `
+		delete from client where id = $1
+	`, id)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Fprintf(w, "Account deleted")
 }
 
 //DELETE FROM Bookmarks WHERE owner = $1
