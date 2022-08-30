@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"context"
 	"encoding/json"
 	"encore.app/models"
 	"encore.dev/storage/sqldb"
@@ -18,41 +19,33 @@ func ClientRegistration(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 	fmt.Println("1 -    1")
-	ctx := r.Context()
-	//res,err:=sqldb.Exec(ctx, `
-	//	select exists(select 1 from client where login = '$1')
-	//`, c.Login)
+	var ctx context.Context = r.Context()
 	//
-	//rows, err := sqldb.Query(ctx, `
-	//	select exists(select 1 from client where login = '$1')
-	//`, c.Login)
-	//defer rows.Close()
-	//check := ""
-	//for rows.Next() {
-	//	if err := rows.Scan(&check); err != nil {
-	//		panic(err)
-	//	}
-	//	fmt.Println(check)
-	//}
-	//if check == "true" {
+	var check bool
+	if err := sqldb.QueryRow(ctx, `
+		select exists(select 1 from client where login = $1)
+	`, c.Login).Scan(&check); err != nil {
+	}
+	fmt.Println(err)
+	fmt.Println("row: ", check)
 	//
-	//	fmt.Fprintf(w, "This login is already in use")
-	//}
+	if check == true {
+		fmt.Fprintf(w, "This login is already in use")
+		return
+	}
 	log.Println(c)
-
+	//
 	_, err = sqldb.Exec(ctx, `
-		INSERT INTO client (login,password) SELECT '$1', '$2' WHERE NOT EXISTS (SELECT login FROM client WHERE login = '$1')
-	`, c.Login, c.Password)
+		insert into client (login,password) select $1, $2 where not exists (select login from client where login = $3)
+	`, c.Login, c.Password, c.Login)
 	if err != nil {
-		fmt.Println("Ошибка на 47 строка")
+		fmt.Println("Ошибка на 48 строка")
 		panic(err)
 	}
-	//return "successful registration"
-	//return
+	//
 	fmt.Fprintf(w, "Successful registration")
+	fmt.Println("Successful registration")
 }
-
-//		INSERT INTO client (login,password) SELECT '$1', '$2' WHERE NOT EXISTS (SELECT login FROM client WHERE login = '$1')
 
 //encore:api public raw method=POST path=/client/login
 func ClientLogin(w http.ResponseWriter, r *http.Request) {
@@ -63,23 +56,19 @@ func ClientLogin(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 	ctx := r.Context()
-	passwordFromDB := ""
-	rows, err := sqldb.Query(ctx, `
-		select password from client where login = '$1'
-	`, c.Login)
-	if err != nil {
-		panic(err)
+
+	var passwordFromDB string
+	if err := sqldb.QueryRow(ctx, `
+		select password from client where login = $1
+	`, c.Login).Scan(&passwordFromDB); err != nil {
 	}
-	defer rows.Close()
-	for rows.Next() {
-		if err := rows.Scan(&passwordFromDB); err != nil {
-			panic(err)
-		}
-	}
+	fmt.Println("passw from bd: ", passwordFromDB)
 	if c.Password == passwordFromDB {
-		fmt.Fprintf(w, "correct password")
+		fmt.Fprintf(w, "correct data")
+		return
 	}
 	fmt.Fprintf(w, "invalid data")
+
 }
 
 //DELETE FROM Bookmarks WHERE owner = $1
