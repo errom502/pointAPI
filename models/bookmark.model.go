@@ -1,9 +1,9 @@
 package models
 
 type Bookmarks struct {
-	ID int `json:"id"`
+	ID int
 	Name string `json:"name"`
-	Address string `json:"addr"`
-	Owner string `json:"owner"`
+	Address string `json:"address"`
+	Owner int
 	Info string `json:"info"`
 }

@@ -18,9 +18,8 @@ func ClientRegistration(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("1 -    1")
 	var ctx context.Context = r.Context()
-	//
+	
 	var check bool
 	if err := sqldb.QueryRow(ctx, `
 		select exists(select 1 from client where login = $1)
@@ -28,13 +27,13 @@ func ClientRegistration(w http.ResponseWriter, r *http.Request) {
 	}
 	fmt.Println(err)
 	fmt.Println("row: ", check)
-	//
+	
 	if check == true {
 		fmt.Fprintf(w, "This login is already in use")
 		return
 	}
 	log.Println(c)
-	//
+	
 	_, err = sqldb.Exec(ctx, `
 		insert into client (login,password) select $1, $2 where not exists (select login from client where login = $3)
 	`, c.Login, c.Password, c.Login)
@@ -42,7 +41,7 @@ func ClientRegistration(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("Ошибка на 48 строка")
 		panic(err)
 	}
-	//
+	
 	fmt.Fprintf(w, "Successful registration")
 	fmt.Println("Successful registration")
 }
@@ -57,11 +56,18 @@ func ClientLogin(w http.ResponseWriter, r *http.Request) {
 	}
 	ctx := r.Context()
 
-	var passwordFromDB string
+	//запомнить айди
+	var (
+		passwordFromDB string
+		idFromDB int
+	)
+
 	if err := sqldb.QueryRow(ctx, `
-		select password from client where login = $1
-	`, c.Login).Scan(&passwordFromDB); err != nil {
+		select id, password from client where login = $1
+	`, c.Login).Scan(&idFromDB, &passwordFromDB); err != nil {
 	}
+	fmt.Println("id from bd: ", idFromDB)
+	models.GlobId = idFromDB
 	fmt.Println("passw from bd: ", passwordFromDB)
 	if c.Password == passwordFromDB {
 		fmt.Fprintf(w, "correct data")
@@ -70,6 +76,3 @@ func ClientLogin(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "invalid data")
 
 }
-
-//DELETE FROM Bookmarks WHERE owner = $1
-//DELETE FROM client WHERE id = $1
