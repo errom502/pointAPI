@@ -41,7 +41,7 @@ func addBookmark(w http.ResponseWriter, r *http.Request) {
 //encore:api public method=GET path=/bookmarks
 func getBookmarks(ctx context.Context) (*models.ListResponse, error) {
 	rows, err := sqldb.Query(ctx, `
-		select * from Bookmarks
+		select * from Bookmark
 	`,)
 	defer rows.Close()
 	bs := []*models.Bookmarks{}
