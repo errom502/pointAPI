@@ -27,10 +27,13 @@ func addBookmark(w http.ResponseWriter, r *http.Request) {
 
 		var ctx context.Context = r.Context()
 		_, err = sqldb.Exec(ctx, `
-			INSERT INTO Bookmark (name, address, owner, info) VALUES ($1, $2, $3, $4)
+			insert into Bookmark (name, address, owner, info) VALUES ($1, $2, $3, $4)
 		`, b.Name, b.Address, models.GlobId, b.Info)
 		if err != nil {
+			fmt.Fprintf(w, "Bookmark adding went wrong!")
 			panic(err)
+		} else {
+			fmt.Fprintf(w, "Bookmark was seccessfully added!")
 		}
 	}
 }
