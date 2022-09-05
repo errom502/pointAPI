@@ -30,7 +30,10 @@ func addBookmark(w http.ResponseWriter, r *http.Request) {
 			INSERT INTO Bookmark (name, address, owner, info) VALUES ($1, $2, $3, $4)
 		`, b.Name, b.Address, models.GlobId, b.Info)
 		if err != nil {
+			fmt.Fprintf(w, "Bookmark adding went wrong!")
 			panic(err)
+		} else {
+			fmt.Fprintf(w, "Bookmark was seccessfully added!")
 		}
 	}
 }
