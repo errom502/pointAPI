@@ -10,7 +10,7 @@ import (
 	"net/http"
 )
 
-//encore:api public raw method=POST path=/client/registration
+//encore:api public raw method=POST path=/client/reg
 func ClientRegistration(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 	var c models.Client

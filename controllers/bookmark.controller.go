@@ -26,6 +26,10 @@ func addBookmark(w http.ResponseWriter, r *http.Request) {
 		}
 
 		var ctx context.Context = r.Context()
+		if b.Info == "" {
+			fmt.Println("info is nill")
+			b.Info = "-"
+		}
 		_, err = sqldb.Exec(ctx, `
 			insert into Bookmark (name, address, owner, info) VALUES ($1, $2, $3, $4)
 		`, b.Name, b.Address, models.GlobId, b.Info)
@@ -49,7 +53,7 @@ func getBookmarks(ctx context.Context) (*models.ListResponse, error) {
 	for rows.Next() {
 		var b models.Bookmarks
 
-		if err := rows.Scan(&b.ID, &b.Name, &b.Address, &b.Owner, &b.Info); err != nil {
+		if err := rows.Scan(&b.ID, &b.Name, &b.Address, &b.Info, &b.Owner); err != nil {
 			return nil, err
 		}
 		bs = append(bs, &b)
