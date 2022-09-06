@@ -2,7 +2,7 @@ package hello
 
 import (
 	"context"
-	models "encore.app/models"
+	"encore.app/models"
 )
 
 //encore:api public path=/hello

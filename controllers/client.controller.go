@@ -6,7 +6,6 @@ import (
 	"encore.app/models"
 	"encore.dev/storage/sqldb"
 	"fmt"
-	"log"
 	"net/http"
 )
 
@@ -25,25 +24,21 @@ func ClientRegistration(w http.ResponseWriter, r *http.Request) {
 		select exists(select 1 from client where login = $1)
 	`, c.Login).Scan(&check); err != nil {
 	}
-	fmt.Println(err)
 	fmt.Println("row: ", check)
 
 	if check == true {
 		fmt.Fprintf(w, "This login is already in use")
 		return
 	}
-	log.Println(c)
 
 	_, err = sqldb.Exec(ctx, `
 		insert into client (login,password) select $1, $2 where not exists (select login from client where login = $3)
 	`, c.Login, c.Password, c.Login)
 	if err != nil {
-		fmt.Println("Ошибка на 48 строка")
 		panic(err)
 	}
 
 	fmt.Fprintf(w, "Successful registration")
-	fmt.Println("Successful registration")
 }
 
 //encore:api public raw method=POST path=/client/login
@@ -69,10 +64,10 @@ func ClientLogin(w http.ResponseWriter, r *http.Request) {
 	models.GlobId = idFromDB
 	fmt.Println("passw from bd: ", passwordFromDB)
 	if c.Password == passwordFromDB {
-		fmt.Fprintf(w, "correct data")
+		fmt.Fprintf(w, "You've just successfully loged in!")
 		return
 	}
-	fmt.Fprintf(w, "invalid data")
+	fmt.Fprintf(w, "Something went wrong")
 }
 
 //encore:api public raw method=DELETE path=/client/delete
