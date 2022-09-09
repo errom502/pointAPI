@@ -3,8 +3,8 @@ package controllers
 import (
 	"context"
 	"encoding/json"
-	"net/http"
 	"fmt"
+	"net/http"
 
 	"encore.app/models"
 	"encore.dev/storage/sqldb"
@@ -86,6 +86,41 @@ func editBookmark(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "Bookmark with this ID doesn't exist")
 		panic(err)
 	} else {
-		fmt.Fprintf(w, "Bookmark was successfully updated!")	
+		fmt.Fprintf(w, "Bookmark was successfully updated!")
 	}
+}
+
+//encore:api public raw method=DELETE path=/bookmark/delete
+func deleteBookmark(w http.ResponseWriter, r *http.Request) {
+	if models.GlobId == 0 {
+		fmt.Fprintf(w, "You must be logged in")
+		return
+	}
+	decoder := json.NewDecoder(r.Body)
+	var b models.Bookmarks
+	err := decoder.Decode(&b)
+	fmt.Println(b)
+	if err != nil {
+		panic(err)
+	}
+	var ctx context.Context = r.Context()
+	var check bool
+	if err := sqldb.QueryRow(ctx, `
+		select exists(select 1 from bookmark where id = $1)
+	`, b.ID).Scan(&check); err != nil {
+	}
+
+	if check == false {
+		fmt.Fprintf(w, "Bookmark with this ID doesn't exist")
+		return
+	}
+
+	_, err = sqldb.Exec(ctx, `
+		delete from bookmark where id = $1
+	`, b.ID)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Fprintf(w, "Bookmark deleted")
 }
