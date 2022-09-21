@@ -3,5 +3,6 @@ create table if not exists Bookmark (
 	name text not null,
 	address text not null,
 	info text not null default '-',
+    coordinates text not null default '-',
 	owner int not null REFERENCES client(id) ON DELETE CASCADE
 );

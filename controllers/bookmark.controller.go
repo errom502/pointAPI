@@ -3,11 +3,10 @@ package controllers
 import (
 	"context"
 	"encoding/json"
-	"fmt"
-	"net/http"
-
 	"encore.app/models"
 	"encore.dev/storage/sqldb"
+	"fmt"
+	"net/http"
 )
 
 //encore:api public raw method=POST path=/bookmark/add
@@ -29,8 +28,8 @@ func addBookmark(w http.ResponseWriter, r *http.Request) {
 		b.Info = "-"
 	}
 	_, err = sqldb.Exec(ctx, `
-		insert into Bookmark (name, address, owner, info) VALUES ($1, $2, $3, $4)
-	`, b.Name, b.Address, models.GlobId, b.Info)
+		insert into Bookmark (name, address, info, coordinates, owner) VALUES ($1, $2, $3, $4, $5)
+	`, b.Name, b.Address, b.Info, b.Coordinates, models.GlobId)
 	if err != nil {
 		fmt.Fprintf(w, "Bookmark adding went wrong!")
 		panic(err)
@@ -42,15 +41,15 @@ func addBookmark(w http.ResponseWriter, r *http.Request) {
 //encore:api public method=GET path=/bookmarks
 func getBookmarks(ctx context.Context) (*models.ListResponse, error) {
 	rows, err := sqldb.Query(ctx, `
-		select * from Bookmark
-	`)
+		select * from Bookmark where owner = $1
+	`, models.GlobId)
 	defer rows.Close()
 	bs := []*models.Bookmarks{}
 
 	for rows.Next() {
 		var b models.Bookmarks
 
-		if err := rows.Scan(&b.ID, &b.Name, &b.Address, &b.Info, &b.Owner); err != nil {
+		if err := rows.Scan(&b.ID, &b.Name, &b.Address, &b.Info, &b.Coordinates, &b.Owner); err != nil {
 			return nil, err
 		}
 		bs = append(bs, &b)
@@ -73,14 +72,10 @@ func editBookmark(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		panic(err)
 	}
-
-	if b.Info == "" {
-		b.Info = "-"
-	}
 	var ctx context.Context = r.Context()
 	row, err := sqldb.Query(ctx, `
-		update Bookmark set name = $1, address = $2, info = $3 where id = $4
-	`, b.Name, b.Address, b.Info, b.ID)
+		update Bookmark set name = $1, address = $2, info = $3, coordinates = $4 where id = $5
+	`, b.Name, b.Address, b.Info, &b.Coordinates, b.ID)
 	fmt.Println(row)
 	if err != nil {
 		fmt.Fprintf(w, "Bookmark with this ID doesn't exist")
