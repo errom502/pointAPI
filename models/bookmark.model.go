@@ -3,8 +3,8 @@ package models
 type Bookmarks struct {
 	ID          int    `json:"id"`
 	Name        string `json:"name"`
-	Address     string `json:"address"`
+	Latitude float64 `json:"latitude"`
+	Longitude float64 `json:"longitude"`
 	Info        string `json:"info"`
-	Coordinates string `json:"coordinates"`
-	Owner       int
+	Owner       string
 }

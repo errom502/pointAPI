@@ -5,4 +5,4 @@ type Client struct {
 	Password string `json:"password"`
 }
 
-var GlobId int
+var GlobId string

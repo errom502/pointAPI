@@ -32,7 +32,7 @@ func ClientRegistration(w http.ResponseWriter, r *http.Request) {
 	}
 
 	_, err = sqldb.Exec(ctx, `
-		insert into client (login,password) select $1, $2 where not exists (select login from client where login = $3)
+		insert into client (login, password) select $1, $2 where not exists(select login from client where login = $3)
 	`, c.Login, c.Password, c.Login)
 	if err != nil {
 		panic(err)
@@ -53,15 +53,15 @@ func ClientLogin(w http.ResponseWriter, r *http.Request) {
 
 	var (
 		passwordFromDB string
-		idFromDB       int
+		idFromDB       string
 	)
 
 	if err := sqldb.QueryRow(ctx, `
 		select id, password from client where login = $1
 	`, c.Login).Scan(&idFromDB, &passwordFromDB); err != nil {
 	}
-	fmt.Println("id from bd: ", idFromDB)
 	models.GlobId = idFromDB
+	fmt.Println("id from bd: ", models.GlobId)
 	fmt.Println("passw from bd: ", passwordFromDB)
 	if c.Password == passwordFromDB {
 		fmt.Fprintf(w, "You've just successfully loged in!")
@@ -74,7 +74,7 @@ func ClientLogin(w http.ResponseWriter, r *http.Request) {
 func deleteAccount(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	_, err := sqldb.Exec(ctx, `
-		delete from client where id = $1
+		delete from client where id = '$1'
 	`, models.GlobId)
 	if err != nil {
 		panic(err)
