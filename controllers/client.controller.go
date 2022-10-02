@@ -19,6 +19,14 @@ func ClientRegistration(w http.ResponseWriter, r *http.Request) {
 	}
 	var ctx context.Context = r.Context()
 
+	if c.Login == "" {
+		fmt.Fprintf(w, "Send me some normal login,ok?")
+		return
+	}
+	if c.Password == "" {
+		fmt.Fprintf(w, "Great password, but can you send me some normal password?")
+		return
+	}
 	var check bool
 	if err := sqldb.QueryRow(ctx, `
 		select exists(select 1 from client where login = $1)
@@ -55,16 +63,17 @@ func ClientLogin(w http.ResponseWriter, r *http.Request) {
 		passwordFromDB string
 		idFromDB       string
 	)
-
+	if c.Login == "" {
+		fmt.Fprintf(w, "Send me some normal login,ok?")
+		return
+	}
 	if err := sqldb.QueryRow(ctx, `
 		select id, password from client where login = $1
 	`, c.Login).Scan(&idFromDB, &passwordFromDB); err != nil {
 	}
-	models.GlobId = idFromDB
-	fmt.Println("id from bd: ", models.GlobId)
-	fmt.Println("passw from bd: ", passwordFromDB)
 	if c.Password == passwordFromDB {
-		fmt.Fprintf(w, "You've just successfully loged in!")
+		c.Token = CreateToken(idFromDB, ctx)
+		fmt.Fprintf(w, "token:%s", c.Token)
 		return
 	}
 	fmt.Fprintf(w, "Something went wrong")
@@ -72,10 +81,25 @@ func ClientLogin(w http.ResponseWriter, r *http.Request) {
 
 //encore:api public raw method=DELETE path=/client/delete
 func deleteAccount(w http.ResponseWriter, r *http.Request) {
+	decoder := json.NewDecoder(r.Body)
+	var c models.Client
+	err := decoder.Decode(&c)
+	if err != nil {
+		panic(err)
+	}
 	ctx := r.Context()
-	_, err := sqldb.Exec(ctx, `
-		delete from client where id = '$1'
-	`, models.GlobId)
+	if len(c.Token) != 43 {
+		fmt.Fprintf(w, "Bad token")
+		return
+	}
+	if err := sqldb.QueryRow(ctx, `
+		select id_user from token where token = $1
+	`, c.Token).Scan(&c.Id); err != nil {
+	}
+	fmt.Println(c.Token, c.Id)
+	_, err = sqldb.Exec(ctx, `
+		delete from client where id = $1
+	`, c.Id)
 	if err != nil {
 		panic(err)
 	}
