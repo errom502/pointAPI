@@ -7,4 +7,4 @@ type Client struct {
 	Token    string `json:"token"`
 }
 
-var GlobId string
+var GlobId int
