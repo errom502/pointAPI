@@ -72,7 +72,7 @@ func ClientLogin(w http.ResponseWriter, r *http.Request) {
 	`, c.Login).Scan(&idFromDB, &passwordFromDB); err != nil {
 	}
 	if c.Password == passwordFromDB {
-		c.Token = CreateToken(idFromDB, ctx)
+		c.Token = CreateToken(ctx, idFromDB)
 		fmt.Fprintf(w, "token:%s", c.Token)
 		return
 	}
