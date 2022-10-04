@@ -1,5 +1,5 @@
-create table if not exists Client (
-	id TEXT PRIMARY KEY DEFAULT ('c_' || generate_uid(10)),
+CREATE TABLE IF NOT EXISTS Client (
+	id int4 PRIMARY KEY DEFAULT random_between(1000, 9000),
 	login varchar(100) NOT NULL,
-	password varchar(100) NOT NULL
+	"password" varchar(100) NOT NULL
 );

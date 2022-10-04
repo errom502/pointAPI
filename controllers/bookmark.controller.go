@@ -30,10 +30,11 @@ func addBookmark(w http.ResponseWriter, r *http.Request) {
 		select id_user from token where token = $1
 	`, b.Token).Scan(&b.Owner); err != nil {
 	}
-	if b.Owner == "" {
+	if b.Owner == 0 {
 		fmt.Fprintf(w, "bad token")
 		return
 	}
+	// insert into Bookmark (id,	name, latitude, longitude, info, "owner") VALUES ((concat(1915)), '1', 1, 1, '', 1915)
 	if err := sqldb.QueryRow(ctx, `
 		insert into Bookmark (name, latitude, longitude, info, owner) VALUES ($1, $2, $3, $4, $5) RETURNING id
 	`, b.Name, b.Latitude, b.Longitude, b.Info, b.Owner).Scan(&b.ID); err != nil {
@@ -54,7 +55,7 @@ func getBookmarks(ctx context.Context, token string) (*models.ListResponse, erro
 		select id_user from token where token = $1
 	`, b.Token).Scan(&b.Owner); err != nil {
 	}
-	if b.Owner == "" {
+	if b.Owner == 0 {
 		fmt.Println("bad token")
 	} else {
 		rows, err := sqldb.Query(ctx, `
