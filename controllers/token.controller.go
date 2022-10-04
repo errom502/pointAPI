@@ -8,7 +8,7 @@ import (
 // create token after login
 // select * from token ORDER BY date_create desc limit 5;
 
-func CreateToken(id string, ctx context.Context) (token string) {
+func CreateToken(ctx context.Context, id string) (token string) {
 	_, err := sqldb.Exec(ctx, `
 		insert into token(id_user) values($1);
 	`, id)
