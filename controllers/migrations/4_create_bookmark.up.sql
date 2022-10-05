@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS Bookmark (
-	id int4 PRIMARY KEY DEFAULT concat(),
+	id int4 PRIMARY KEY,
 	"name" text NOT NULL,
 	latitude float4 NOT NULL,
 	longitude float4 NOT NULL,

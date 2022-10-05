@@ -3,6 +3,8 @@ package controllers
 import (
 	"context"
 	"encore.app/models"
+	"encore.dev/storage/sqldb"
+	"fmt"
 	"github.com/golang-jwt/jwt/v4"
 	"time"
 )
@@ -45,5 +47,13 @@ func GenerateToken(ctx context.Context, user models.Client) (string, error) {
 		},
 		Username: user.Login,
 	})
-	return token.SignedString([]byte(signingKey))
+	FnlToken, _ := token.SignedString([]byte(signingKey))
+	_, err := sqldb.Exec(ctx, `
+			insert into token(id_user,token) values($1,$2);
+		`, user.Id, FnlToken)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(FnlToken, user.Id)
+	return FnlToken, err
 }

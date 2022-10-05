@@ -61,7 +61,7 @@ func ClientLogin(w http.ResponseWriter, r *http.Request) {
 
 	var (
 		passwordFromDB string
-		idFromDB       string
+		idFromDB       int
 	)
 	if c.Login == "" {
 		fmt.Fprintf(w, "Send me some normal login,ok?")
@@ -71,8 +71,10 @@ func ClientLogin(w http.ResponseWriter, r *http.Request) {
 		select id, password from client where login = $1
 	`, c.Login).Scan(&idFromDB, &passwordFromDB); err != nil {
 	}
+	c.Id = idFromDB
+	fmt.Println(idFromDB, passwordFromDB)
 	if c.Password == passwordFromDB {
-		c.Token = CreateToken(ctx, idFromDB)
+		c.Token, _ = GenerateToken(ctx, c)
 		fmt.Fprintf(w, "token:%s", c.Token)
 		return
 	}
