@@ -11,6 +11,8 @@ import (
 
 //encore:api public raw method=POST path=/bookmark/add
 func addBookmark(w http.ResponseWriter, r *http.Request) {
+	tkn := r.Header.Get("token")
+
 	decoder := json.NewDecoder(r.Body)
 	var b models.Bookmarks
 	err := decoder.Decode(&b)
@@ -18,7 +20,7 @@ func addBookmark(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		panic(err)
 	}
-	if b.Token == "" {
+	if tkn == "" {
 		fmt.Fprintf(w, "You must be logged in")
 		return
 	}
@@ -28,16 +30,17 @@ func addBookmark(w http.ResponseWriter, r *http.Request) {
 	}
 	if err := sqldb.QueryRow(ctx, `
 		select id_user from token where token = $1
-	`, b.Token).Scan(&b.Owner); err != nil {
+	`, tkn).Scan(&b.Owner); err != nil {
 	}
 	if b.Owner == 0 {
 		fmt.Fprintf(w, "bad token")
 		return
 	}
+
 	// insert into Bookmark (id,	name, latitude, longitude, info, "owner") VALUES ((concat(1915)), '1', 1, 1, '', 1915)
 	if err := sqldb.QueryRow(ctx, `
-		insert into Bookmark (name, latitude, longitude, info, owner) VALUES ($1, $2, $3, $4, $5) RETURNING id
-	`, b.Name, b.Latitude, b.Longitude, b.Info, b.Owner).Scan(&b.ID); err != nil {
+		insert into Bookmark (id, name, latitude, longitude, info, owner) VALUES (concat($1), $2, $3, $4, $5, $6) RETURNING id
+	`, b.Owner, b.Name, b.Latitude, b.Longitude, b.Info, b.Owner).Scan(&b.ID); err != nil {
 	}
 	if err != nil {
 		fmt.Fprintf(w, "Bookmark adding went wrong!")
@@ -47,13 +50,16 @@ func addBookmark(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-//encore:api public method=GET path=/bookmarks/:token
-func getBookmarks(ctx context.Context, token string) (*models.ListResponse, error) {
+//encore:api public method=GET path=/bookmarks
+func getBookmarks(ctx context.Context) (*models.ListResponse, error) {
+	tkn := ""
+	// r.Header.Get("token")
+	// var ctx context.Context = r.Context()
+
 	var b models.Bookmarks
-	b.Token = token
 	if err := sqldb.QueryRow(ctx, `
 		select id_user from token where token = $1
-	`, b.Token).Scan(&b.Owner); err != nil {
+	`, tkn).Scan(&b.Owner); err != nil {
 	}
 	if b.Owner == 0 {
 		fmt.Println("bad token")
@@ -79,6 +85,8 @@ func getBookmarks(ctx context.Context, token string) (*models.ListResponse, erro
 
 //encore:api public raw method=PATCH path=/bookmark/edit
 func editBookmark(w http.ResponseWriter, r *http.Request) {
+	tkn := r.Header.Get("token")
+
 	decoder := json.NewDecoder(r.Body)
 	var b models.Bookmarks
 	err := decoder.Decode(&b)
@@ -87,14 +95,14 @@ func editBookmark(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 	var ctx context.Context = r.Context()
-	if b.Token == "" {
+	if tkn == "" {
 		fmt.Fprintf(w, "You must be logged in")
 		return
 	}
-	if len(b.Token) != 43 {
-		fmt.Fprintf(w, "Bad token")
-		return
-	}
+	// if len(b.Token) != 43 {
+	// 	fmt.Fprintf(w, "Bad token")
+	// 	return
+	// }
 	var check bool
 	if err := sqldb.QueryRow(ctx, `
 		select exists(select 1 from bookmark where id = $1)
@@ -117,6 +125,9 @@ func editBookmark(w http.ResponseWriter, r *http.Request) {
 
 //encore:api public raw method=DELETE path=/bookmark/delete
 func deleteBookmark(w http.ResponseWriter, r *http.Request) {
+	tkn := r.Header.Get("token")
+	var ctx context.Context = r.Context()
+
 	decoder := json.NewDecoder(r.Body)
 	var b models.Bookmarks
 	err := decoder.Decode(&b)
@@ -124,15 +135,14 @@ func deleteBookmark(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		panic(err)
 	}
-	var ctx context.Context = r.Context()
-	if b.Token == "" {
+	if tkn == "" {
 		fmt.Fprintf(w, "You must be logged in")
 		return
 	}
-	if len(b.Token) != 43 {
-		fmt.Fprintf(w, "Bad token")
-		return
-	}
+	// if len(b.Token) != 43 {
+	// 	fmt.Fprintf(w, "Bad token")
+	// 	return
+	// }
 	var check bool
 	if err := sqldb.QueryRow(ctx, `
 		select exists(select 1 from bookmark where id = $1)
