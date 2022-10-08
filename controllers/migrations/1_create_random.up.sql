@@ -21,8 +21,7 @@ as $function$
 end;
 $function$;
 
-create or replace
-function concat(id int)
+create or replace function concat(id int)
 	returns integer
 	language plpgsql
 as $function$

@@ -83,23 +83,16 @@ func ClientLogin(w http.ResponseWriter, r *http.Request) {
 
 //encore:api public raw method=DELETE path=/client/delete
 func deleteAccount(w http.ResponseWriter, r *http.Request) {
-	decoder := json.NewDecoder(r.Body)
+	tkn := r.Header.Get("token")
 	var c models.Client
-	err := decoder.Decode(&c)
-	if err != nil {
-		panic(err)
-	}
-	ctx := r.Context()
-	if len(c.Token) != 43 {
-		fmt.Fprintf(w, "Bad token")
-		return
-	}
+	c.Token = tkn
+	var ctx context.Context = r.Context()
 	if err := sqldb.QueryRow(ctx, `
 		select id_user from token where token = $1
 	`, c.Token).Scan(&c.Id); err != nil {
 	}
 	fmt.Println(c.Token, c.Id)
-	_, err = sqldb.Exec(ctx, `
+	_, err := sqldb.Exec(ctx, `
 		delete from client where id = $1
 	`, c.Id)
 	if err != nil {

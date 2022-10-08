@@ -1,7 +1,6 @@
 package models
 
 type Bookmarks struct {
-	Token     string  `json:"token"`
 	ID        int     `json:"id"`
 	Name      string  `json:"name"`
 	Latitude  float64 `json:"latitude"`

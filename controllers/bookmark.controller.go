@@ -12,7 +12,6 @@ import (
 //encore:api public raw method=POST path=/bookmark/add
 func addBookmark(w http.ResponseWriter, r *http.Request) {
 	tkn := r.Header.Get("token")
-
 	decoder := json.NewDecoder(r.Body)
 	var b models.Bookmarks
 	err := decoder.Decode(&b)
@@ -36,12 +35,18 @@ func addBookmark(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "bad token")
 		return
 	}
-
+	fmt.Println(b.Owner)
 	// insert into Bookmark (id,	name, latitude, longitude, info, "owner") VALUES ((concat(1915)), '1', 1, 1, '', 1915)
-	if err := sqldb.QueryRow(ctx, `
-		insert into Bookmark (id, name, latitude, longitude, info, owner) VALUES (concat($1), $2, $3, $4, $5, $6) RETURNING id
-	`, b.Owner, b.Name, b.Latitude, b.Longitude, b.Info, b.Owner).Scan(&b.ID); err != nil {
+
+	//execToBd := fmt.Sprintf(ctx, `insert into Bookmark (id, name, latitude, longitude, info, owner) VALUES (concat(`+strconv.Itoa(b.Owner)+`), `+b.Name+`, `+`, $4, $5, $6) RETURNING id
+	//	`, strconv.Itoa(b.Owner), b.Name, b.Latitude, b.Longitude, b.Info, strconv.Itoa(b.Owner))
+	if err := sqldb.QueryRow(ctx, "insert into Bookmark (id, name, latitude, longitude, info, owner) VALUES (concat($1), $2, $3, $4, $5, $6) RETURNING id", b.Owner, b.Name, b.Latitude, b.Longitude, b.Info, b.Owner).Scan(&b.ID); err != nil {
 	}
+	//result, err := sqldb.Exec(ctx, `insert into Bookmark (id, name, latitude, longitude, info, owner) VALUES (concat(`+strconv.Itoa(b.Owner)+`), `+b.Name+`, `+`, $4, $5, $6) RETURNING id
+	//`, strconv.Itoa(b.Owner), b.Name, b.Latitude, b.Longitude, b.Info, strconv.Itoa(b.Owner))
+
+	fmt.Println(err)
+	fmt.Println(b.ID)
 	if err != nil {
 		fmt.Fprintf(w, "Bookmark adding went wrong!")
 		panic(err)
