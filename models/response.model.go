@@ -1,6 +1,6 @@
 package models
 
 type Response struct {
-	Message string
+	Message string ''
 	Token   string `header:"token"`
 }
