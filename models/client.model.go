@@ -2,9 +2,9 @@ package models
 
 type Client struct {
 	Login    string `json:"login"`
-	Id       int    `json:"id"`
+	Id       int
 	Password string `json:"password"`
-	Token    string `json:"token"`
+	Token    string
 }
 
 var GlobId int

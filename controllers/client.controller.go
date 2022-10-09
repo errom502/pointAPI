@@ -61,7 +61,7 @@ func ClientLogin(w http.ResponseWriter, r *http.Request) {
 
 	var (
 		passwordFromDB string
-		idFromDB       int
+		// idFromDB       int
 	)
 	if c.Login == "" {
 		fmt.Fprintf(w, "Send me some normal login,ok?")
@@ -69,34 +69,37 @@ func ClientLogin(w http.ResponseWriter, r *http.Request) {
 	}
 	if err := sqldb.QueryRow(ctx, `
 		select id, password from client where login = $1
-	`, c.Login).Scan(&idFromDB, &passwordFromDB); err != nil {
+	`, c.Login).Scan(&c.Id, &passwordFromDB); err != nil {
 	}
-	c.Id = idFromDB
-	fmt.Println(idFromDB, passwordFromDB)
+	// c.Id = idFromDB
+	fmt.Println(c.Id, passwordFromDB)
 	if c.Password == passwordFromDB {
-		c.Token, _ = GenerateToken(ctx, c)
-		fmt.Fprintf(w, "token:%s", c.Token)
-		return
+		c.Token = GenerateToken(ctx, c)
+		fmt.Fprintf(w, "token: %s", c.Token)
+	} else {
+		fmt.Fprintf(w, "Something went wrong")
 	}
-	fmt.Fprintf(w, "Something went wrong")
 }
 
 //encore:api public raw method=DELETE path=/client/delete
 func deleteAccount(w http.ResponseWriter, r *http.Request) {
-	tkn := r.Header.Get("token")
 	var c models.Client
-	c.Token = tkn
+	c.Token = r.Header.Get("token")
+	
 	var ctx context.Context = r.Context()
 	if err := sqldb.QueryRow(ctx, `
 		select id_user from token where token = $1
 	`, c.Token).Scan(&c.Id); err != nil {
+		fmt.Println(c.Token, " for ", c.Id)
+	} else {
+		panic(err)
 	}
-	fmt.Println(c.Token, c.Id)
 	_, err := sqldb.Exec(ctx, `
 		delete from client where id = $1
 	`, c.Id)
 	if err != nil {
 		panic(err)
+	} else {
+		fmt.Fprintf(w, "Account deleted")
 	}
-	fmt.Fprintf(w, "Account deleted")
 }

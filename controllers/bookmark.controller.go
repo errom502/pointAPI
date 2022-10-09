@@ -1,10 +1,12 @@
 package controllers
 
 import (
-	"context"
-	"encoding/json"
+	_ "encore.dev/middleware"
 	"encore.app/models"
 	"encore.dev/storage/sqldb"
+
+	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 )
@@ -15,7 +17,6 @@ func addBookmark(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 	var b models.Bookmarks
 	err := decoder.Decode(&b)
-	fmt.Println(b)
 	if err != nil {
 		panic(err)
 	}
@@ -27,38 +28,31 @@ func addBookmark(w http.ResponseWriter, r *http.Request) {
 	if b.Info == "" {
 		b.Info = "-"
 	}
+	
 	if err := sqldb.QueryRow(ctx, `
-		select id_user from token where token = $1
+	select id_user from token where token = $1
 	`, tkn).Scan(&b.Owner); err != nil {
 	}
 	if b.Owner == 0 {
 		fmt.Fprintf(w, "bad token")
 		return
 	}
+	fmt.Println(&b)
 	fmt.Println(b.Owner)
-	// insert into Bookmark (id,	name, latitude, longitude, info, "owner") VALUES ((concat(1915)), '1', 1, 1, '', 1915)
-
-	//execToBd := fmt.Sprintf(ctx, `insert into Bookmark (id, name, latitude, longitude, info, owner) VALUES (concat(`+strconv.Itoa(b.Owner)+`), `+b.Name+`, `+`, $4, $5, $6) RETURNING id
-	//	`, strconv.Itoa(b.Owner), b.Name, b.Latitude, b.Longitude, b.Info, strconv.Itoa(b.Owner))
-	if err := sqldb.QueryRow(ctx, "insert into Bookmark (id, name, latitude, longitude, info, owner) VALUES (concat($1), $2, $3, $4, $5, $6) RETURNING id", b.Owner, b.Name, b.Latitude, b.Longitude, b.Info, b.Owner).Scan(&b.ID); err != nil {
-	}
-	//result, err := sqldb.Exec(ctx, `insert into Bookmark (id, name, latitude, longitude, info, owner) VALUES (concat(`+strconv.Itoa(b.Owner)+`), `+b.Name+`, `+`, $4, $5, $6) RETURNING id
-	//`, strconv.Itoa(b.Owner), b.Name, b.Latitude, b.Longitude, b.Info, strconv.Itoa(b.Owner))
-
-	fmt.Println(err)
-	fmt.Println(b.ID)
-	if err != nil {
+	
+	if err := sqldb.QueryRow(ctx, `insert into Bookmark (id, name, latitude, longitude, info, owner) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`, models.Concat(b.Owner, ctx), b.Name, b.Latitude, b.Longitude, b.Info, b.Owner).Scan(&b.ID); err != nil {
 		fmt.Fprintf(w, "Bookmark adding went wrong!")
 		panic(err)
 	} else {
-		fmt.Fprintf(w, "Bookmark was successfully added!\nBookmark's id is:%d", b.ID)
+		fmt.Fprintf(w, "Bookmark was successfully added!\nBookmark's id is: %d", b.ID)
 	}
 }
 
+//доделать расшифровку токена
+
 //encore:api public method=GET path=/bookmarks
-func getBookmarks(ctx context.Context) (*models.ListResponse, error) {
-	tkn := ""
-	// r.Header.Get("token")
+func getBookmarks(ctx context.Context, m models.Response) (*models.ListResponse, error) {
+	tkn := m.Token
 	// var ctx context.Context = r.Context()
 
 	var b models.Bookmarks
@@ -82,7 +76,6 @@ func getBookmarks(ctx context.Context) (*models.ListResponse, error) {
 			}
 			bs = append(bs, &b)
 		}
-
 		return &models.ListResponse{Bookmarks: bs}, err
 	}
 	return nil, nil
@@ -149,11 +142,9 @@ func deleteBookmark(w http.ResponseWriter, r *http.Request) {
 	// 	return
 	// }
 	var check bool
-	if err := sqldb.QueryRow(ctx, `
+	_ = sqldb.QueryRow(ctx, `
 		select exists(select 1 from bookmark where id = $1)
-	`, b.ID).Scan(&check); err != nil {
-	}
-
+	`, b.ID).Scan(&check)
 	if check == false {
 		fmt.Fprintf(w, "Bookmark with this ID doesn't exist")
 		return
@@ -168,3 +159,20 @@ func deleteBookmark(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Fprintf(w, "Bookmark deleted")
 }
+
+// //encore:middleware global target=tag:getb
+// func ValidationMiddleware(req middleware.Request, next middleware.Next) middleware.Response {
+// 	// If the payload has a Validate method, use it to validate the request.
+// 	payload := req.Data().Payload
+// 	print(payload)
+
+
+// 	// if validator, ok := payload.(interface { Validate() error }); ok {
+// 	// 		if err := validator.Validate(); err != nil {
+// 	// 				// If the validation fails, return an InvalidArgument error.
+// 	// 				err = errs.WrapCode(err, errs.InvalidArgument, "validation failed")
+// 	// 				return middleware.Response{Err: err}
+// 	// 		}
+// 	// }
+// 	return next(req)
+// }

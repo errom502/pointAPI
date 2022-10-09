@@ -39,7 +39,7 @@ const (
 	tokenTTL   = 12 * time.Hour // токен перестанет быть валидным через 12 часов
 )
 
-func GenerateToken(ctx context.Context, user models.Client) (string, error) {
+func GenerateToken(ctx context.Context, user models.Client) (string) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &models.TokenClaims{
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(tokenTTL).Unix(), // токен перестанет быть валидным через 12 часов
@@ -53,7 +53,8 @@ func GenerateToken(ctx context.Context, user models.Client) (string, error) {
 		`, user.Id, FnlToken)
 	if err != nil {
 		panic(err)
+	} else {
+		fmt.Println(FnlToken, user.Id)
+		return FnlToken
 	}
-	fmt.Println(FnlToken, user.Id)
-	return FnlToken, err
 }
