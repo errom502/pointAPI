@@ -49,8 +49,8 @@ func GenerateToken(ctx context.Context, user models.Client) (string) {
 	})
 	FnlToken, _ := token.SignedString([]byte(signingKey))
 	_, err := sqldb.Exec(ctx, `
-			insert into token(id_user,token) values($1,$2);
-		`, user.Id, FnlToken)
+		insert into token(id_user, token) values($1, $2)
+	`, user.Id, FnlToken)
 	if err != nil {
 		panic(err)
 	} else {
