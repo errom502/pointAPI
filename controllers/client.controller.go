@@ -38,7 +38,7 @@ func ClientRegistration(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "This login is already in use")
 		return
 	}
-
+	////
 	_, err = sqldb.Exec(ctx, `
 		insert into client (login, password) select $1, $2 where not exists(select login from client where login = $3)
 	`, c.Login, c.Password, c.Login)
@@ -84,16 +84,18 @@ func ClientLogin(w http.ResponseWriter, r *http.Request) {
 //encore:api public raw method=DELETE path=/client/delete
 func deleteAccount(w http.ResponseWriter, r *http.Request) {
 	var c models.Client
-	c.Token = r.Header.Get("token")
-	
 	var ctx context.Context = r.Context()
+	c.Token = r.Header.Get("token")
 	if err := sqldb.QueryRow(ctx, `
 		select id_user from token where token = $1
 	`, c.Token).Scan(&c.Id); err != nil {
-		fmt.Println(c.Token, " for ", c.Id)
-	} else {
-		panic(err)
 	}
+	if c.Id == 0 {
+		fmt.Println("bad token")
+		return
+	}
+	fmt.Println(c.Token, " for ", c.Id)
+	fmt.Println("SOMETHING")
 	_, err := sqldb.Exec(ctx, `
 		delete from client where id = $1
 	`, c.Id)
